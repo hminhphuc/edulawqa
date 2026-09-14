@@ -13,6 +13,7 @@ Usage: python3 scripts/citation_accuracy.py
 from __future__ import annotations
 import argparse
 import json
+import os
 import sys
 import re
 import unicodedata
@@ -25,7 +26,8 @@ import requests
 ROOT = Path(os.environ.get("LEXROUTE_ROOT", Path(__file__).resolve().parent.parent))
 # Repo root. Override with the LEXROUTE_ROOT environment variable if you relocate the data.
 OUT = ROOT / "runs/citation_accuracy"
-QDRANT = "http://localhost:6333"
+QDRANT = os.environ.get("LEXROUTE_QDRANT", "http://localhost:6333")
+COLLECTION = os.environ.get("LEXROUTE_COLLECTION", "legaledu_v3")
 
 ARMS = {
     "8B-traj": "runs/student_infer/eval200_8B-traj-f35.jsonl",
@@ -59,7 +61,7 @@ def build_corpus_index():
     off = None
     n = 0
     while True:
-        r = requests.post(f"{QDRANT}/collections/legaledu_v3/points/scroll",
+        r = requests.post(f"{QDRANT}/collections/{COLLECTION}/points/scroll",
                           json={"limit": 1000, "with_payload": ["so_ky_hieu", "dieu", "text"],
                                 **({"offset": off} if off else {})}, timeout=60).json()["result"]
         for p in r["points"]:

@@ -54,7 +54,14 @@ cd data && sha256sum -c SHA256SUMS
 
 The scoring rubric is frozen. `harness/judge.py` verifies the rubric file against the
 checksum in `configs/FROZEN_CHECKSUMS.md` on every load and refuses to run on a mismatch,
-so a silently edited rubric cannot reach a reported number.
+so a silently edited rubric cannot reach a reported number. That is also why
+`configs/judge.frozen.yaml` still reads like a working note, in the authors' language in
+places: it is shipped byte-identical to the file that produced the published scores, and
+tidying its prose would break the guarantee it exists to give.
+
+The citation scorer needs a retrieval backend holding the corpus; it reads
+`LEXROUTE_QDRANT` and `LEXROUTE_COLLECTION` from the environment and will not work
+against ours.
 
 ## Three things worth knowing immediately
 
