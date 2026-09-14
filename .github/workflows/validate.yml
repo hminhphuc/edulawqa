@@ -1,0 +1,45 @@
+name: validate
+
+# The data card makes factual claims about these files. This workflow re-derives
+# every one of them from the files themselves on each push, so a claim that stops
+# being true fails visibly instead of sitting in the documentation.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Checksums match
+        run: cd data && sha256sum -c SHA256SUMS
+
+      - name: Hard checks and documented characteristics
+        run: python3 scripts/validate_release.py
+
+      - name: Harness self-tests
+        run: |
+          python3 -m pip install --quiet scipy numpy
+          python3 harness/stats_tests.py
+          python3 harness/cvrs.py
+          python3 harness/mcq_runner.py
+
+      - name: Every script parses and answers --help
+        run: |
+          set -e
+          for f in harness/*.py scripts/*.py; do
+            python3 -m py_compile "$f"
+          done
+          python3 harness/judge.py --help > /dev/null
+          python3 scripts/citation_accuracy.py --help > /dev/null
+          python3 scripts/e37_nli_citation.py --help > /dev/null
+          python3 harness/stats_tests.py --help > /dev/null

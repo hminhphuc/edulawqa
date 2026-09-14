@@ -1,0 +1,27 @@
+{
+  "_note": "Fixtures calibration cho check_contamination (D9.6). must_catch = paraphrase VIẾT TAY từ câu eval thật (chỉ dùng test gate, không phải data); needs_embed=true nghĩa là paraphrase mạnh, tầng 8-gram không bắt được là chấp nhận nhưng tầng cosine PHẢI bắt. must_pass = câu chắc chắn không thuộc eval.",
+  "must_catch": [
+    {"text": "Luật Giáo dục 2019 quy định hệ thống giáo dục quốc dân gồm mấy cấp học?", "note": "verbatim Q001"},
+    {"text": "Theo Luật Giáo dục 2019 thì hệ thống giáo dục quốc dân của nước ta gồm mấy cấp học?", "note": "near-paraphrase Q001"},
+    {"text": "Hệ thống giáo dục quốc dân có bao nhiêu cấp học theo quy định của Luật Giáo dục năm 2019?", "needs_embed": true, "note": "paraphrase mạnh Q001"},
+    {"text": "Luật Giáo dục 2019 bắt đầu có hiệu lực từ ngày nào và thay thế những văn bản nào?", "note": "verbatim G055"},
+    {"text": "Từ ngày nào Luật Giáo dục 2019 có hiệu lực thi hành?", "needs_embed": true, "note": "paraphrase G001"},
+    {"text": "Văn bản pháp luật nào đã thay thế cho Nghị định 86/2015/NĐ-CP?", "needs_embed": true, "note": "paraphrase G003 (sky bị strip nên cần embed)"},
+    {"text": "Khái niệm \"cơ sở giáo dục\" được Luật Giáo dục 2019 định nghĩa ra sao?", "needs_embed": true, "note": "paraphrase G057"},
+    {"text": "Tự chủ đại học theo Luật Giáo dục đại học sửa đổi 2018 được hiểu như thế nào?", "needs_embed": true, "note": "paraphrase G031"},
+    {"text": "Học phí được pháp luật về giáo dục định nghĩa như thế nào?", "needs_embed": true, "note": "paraphrase G005"},
+    {"text": "So sánh chức danh nghề nghiệp giáo viên hạng I, II, III về tiêu chuẩn và lương?", "note": "verbatim câu comparison eval200"}
+  ],
+  "must_pass": [
+    {"text": "Hồ sơ đề nghị cấp phép hoạt động của trung tâm tin học do ai thẩm định theo phân cấp hiện hành?"},
+    {"text": "Việc luân chuyển kế toán trưởng tại phòng giáo dục cấp huyện thực hiện theo chu kỳ mấy năm?"},
+    {"text": "Định mức diện tích phòng thí nghiệm vật lý của trường THPT chuyên là bao nhiêu mét vuông?"},
+    {"text": "Quy trình tiêu hủy đề thi dự phòng không sử dụng sau kỳ thi tuyển sinh lớp 10 gồm những bước nào?"},
+    {"text": "Giáo viên dạy môn tích hợp liên môn ở bậc THCS được tính định mức tiết dạy như thế nào khi kiêm nhiệm thư viện?"},
+    {"text": "Trường mầm non tư thục có bắt buộc phải mua bảo hiểm trách nhiệm nghề nghiệp cho toàn bộ bảo mẫu không?"},
+    {"text": "Ai có thẩm quyền phê duyệt phương án diễn tập phòng cháy chữa cháy tại ký túc xá sinh viên?"},
+    {"text": "Mức chi hỗ trợ văn phòng phẩm cho tổ chấm phúc khảo bài thi học kỳ được quy định ở đâu?"},
+    {"text": "Thời hạn lưu trữ sổ đăng bộ học sinh của trường tiểu học là bao nhiêu năm theo quy định văn thư?"},
+    {"text": "Điều kiện để một trường cao đẳng nghề được liên kết đào tạo với doanh nghiệp nước ngoài trong lĩnh vực logistics là gì?"}
+  ]
+}

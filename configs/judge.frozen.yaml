@@ -1,0 +1,157 @@
+# judge.frozen.yaml — THƯỚC ĐO ĐÓNG BĂNG (freeze 2026-07-04, N1)
+# Nguồn: tái sử dụng judge_calibrated*.py (repo cũ) — provenance ở cuối file.
+# QUY TẮC (CLAUDE.md nguyên tắc 2): sửa BẤT KỲ trường nào trong file này sau khi đã chấm
+# bất kỳ hệ nào = MEASUREMENT event → re-run TẤT CẢ hệ đã chấm. Không có ngoại lệ.
+
+meta:
+  frozen_at: "2026-07-04"
+  frozen_by: "N1 triage ①, docs/05 §0.1"
+  calibration_lineage: "v1-fair (judge_calibrated.py — đã loại priming words + cấm training-knowledge verify để chống cutoff-bias trên luật 2025-2026)"
+  exemplar_audit: "PASS 2026-07-04 — system prompt + prompt template KHÔNG chứa câu hỏi/đáp án nào từ eval sets (chỉ nguyên tắc trừu tượng + rubric anchor); kiểm bằng 8-gram scan vs eval200+gold63+fresh25 (kết quả trong docs/EVAL_FREEZE.md)"
+
+model:
+  judge_model: "gemini-3.1-flash-lite"   # user chốt 2026-07-04 sau mini-test đối chiếu
+  provider: "vertex"
+  location: "global"
+  thinking: "minimal (thinking_level=minimal — judge chấm JSON, không cần chain dài)"
+  max_output_tokens: 4096
+  model_selection_evidence: "mini-test 14 câu thật vs gemini-2.5-pro consensus (chuẩn cũ): Spearman 0.912, MAE 1.79, bias +0.50; loại 2.5-flash (ρ=0.336) và 2.5-flash-lite (ρ=0.354); giá $0.25/$1.50 per M — ~6-7× rẻ hơn 2.5-pro; validation tiếp theo: 30 ref answers Spearman + human spot-check + cross-family GPT (04 §6.4)"
+  batch_policy: "khối lớn không gấp (E08 ~20k call) = Vertex Batch −50% (chất lượng KHÔNG đổi — cùng model/prompt, chỉ async); gate cùng-ngày (E01, dev-50) = sync; fallback R16: batch T+6h chưa ≥50% → cancel, re-run sync full-price (~$50, vừa quỹ dự phòng)"
+
+protocol:
+  consensus:
+    runs: 3
+    temperatures: [0.05, 0.15, 0.25]
+    aggregate: "median of totals + per-criterion median (judge_calibrated_consensus.py)"
+    apply_to: "mọi arm trong so sánh primary P1–P5 (gồm SVM-full — D9.2)"
+  single_pass:
+    temperature: 0.1
+    apply_to: "arm exploratory: always-*, random, prompt-router, oracle (khai báo trước)"
+  retry: {max_attempts: 5, backoff_429_seconds: "30*(attempt+1)", backoff_other_seconds: 5}
+  parse_fail_policy: "D9.8 — parse-fail → retry ≤2 kèm reminder format; vẫn fail → null; consensus median trên ≥2 run; <2 run OK → loại câu KHỎI MỌI ARM của phép so paired; log parse_fail_rate per-arm, >2% = cảnh báo đỏ"
+  abstain_cap: "v1.1 (2026-07-04, MEASUREMENT event — xem EVAL_FREEZE nhật ký): answer khớp pattern abstain (không tìm thấy thông tin/không đủ căn cứ...) → total cưỡng chế ≤18 bằng máy trong wrapper (thi hành nguyên tắc E của rubric mà model judge bỏ qua — phát hiện tại E01: 4/4 case abstain được chấm 22-23). Prompt KHÔNG đổi; cap deterministic, log abstain_capped_from"
+  id_echo: "schema output bắt buộc echo 'id'; alignment chính bằng structural pairing của batch, echo là cross-check (D9.8)"
+
+scoring:
+  scale: "5 tiêu chí × 1-5 = /25"
+  criteria: [factual_accuracy, citation_quality, reasoning_quality, completeness, language_quality]
+  rubric_anchors: |
+    1. factual_accuracy — số liệu/ngày/điều khoản/tên văn bản đúng?
+      5 = mọi sự thật được cite đều khớp với citation provided
+      4 = phần lớn đúng, có 1-2 chi tiết phụ chưa rõ
+      3 = nhìn chung đúng nhưng có 1-2 chỗ chưa chính xác
+      2 = nhiều chi tiết sai
+      1 = sai cơ bản hoặc bịa số/ngày không tồn tại
+    2. citation_quality — citations cụ thể (số ký hiệu + điều/khoản)?
+      5 = mọi câu khẳng định đều được cite chính xác từ chunks
+      4 = cite đầy đủ nhưng có 1 chỗ thiếu/lờ mờ
+      3 = có cite nhưng không đủ rõ
+      2 = cite mơ hồ hoặc không đủ
+      1 = không cite hoặc cite document không tồn tại
+    3. reasoning_quality — lập luận chặt chẽ?
+      5 = logic đầy đủ, kết luận đúng từ căn cứ
+      4 = logic tốt, có vài chỗ cần triển khai hơn
+      3 = logic chấp nhận được
+      2 = lập luận lỏng lẻo
+      1 = không có lập luận / sai logic
+    4. completeness — bao phủ ý chính của câu hỏi?
+      5 = đầy đủ ý chính + bổ sung context phù hợp
+      4 = đầy đủ ý chính
+      3 = đáp ứng cơ bản
+      2 = thiếu một số ý quan trọng
+      1 = không trả lời được câu hỏi
+      * Nếu honest "Không tìm thấy thông tin", thường ở mức 3 (acceptable abstention)
+    5. language_quality — tiếng Việt pháp lý chuẩn, rõ?
+      5 = chuẩn pháp lý, súc tích, dễ hiểu
+      4 = tốt, có thể tinh chỉnh
+      3 = tạm ổn
+      2 = lỗi diễn đạt nhỏ
+      1 = khó hiểu / sai văn phong
+
+# ============ CONFIG 1: trust-citation (nguyên văn judge_calibrated.py v1-fair) ============
+system_prompt_trust_citation: |
+  Bạn là chuyên gia pháp lý đánh giá câu trả lời RAG (Retrieval-Augmented Generation) cho pháp luật giáo dục Việt Nam — CÔNG BẰNG, CÂN BẰNG.
+
+  🎯 Nguyên tắc về CITATIONS (cân bằng giữa lenient và strict):
+
+  (A) Nếu citation trong answer MATCH với "Citations kèm theo": CHẤP NHẬN là hợp lệ — KHÔNG nói "bịa đặt".
+  (B) KHÔNG dùng training knowledge để verify doc tồn tại (cutoff bias trên 2025-2026).
+  (C) Nếu citation KHÔNG có trong "Citations kèm theo" → flag là bịa.
+
+  🎯 Nguyên tắc về CHẤT LƯỢNG (tránh OVER-LENIENT):
+
+  (D) **Answer KHÔNG có citation cụ thể** (không nêu so_ky_hieu / Điều / Khoản):
+      - citation_quality = 1-2/5 (kém — pháp lý cần truy nguồn)
+      - factual_accuracy ≤ 3/5 (không thể verify)
+      - Đây là answer chung chung, KHÔNG đáng 5/5
+
+  (E) **Answer "Không tìm thấy thông tin"** (honest abstain):
+      - completeness = 2-3/5 (không trả lời được câu hỏi user, dù trung thực)
+      - factual_accuracy 4-5/5 (không sai gì)
+      - citation_quality phụ thuộc có nêu lý do retrieve fail không
+      - TỔNG: 14-18/25 là phù hợp cho abstain, KHÔNG nên >20
+
+  (F) **Answer cite ĐÚNG + nội dung chuẩn**:
+      - citation_quality 4-5/5
+      - factual_accuracy 4-5/5
+      - Đây là answer xứng đáng 22-25/25
+
+  (G) **Answer cite SAI / BỊA**: factual + citation = 1-2/5
+
+  🎯 Errors_found:
+  - CÓ THỂ rỗng `[]` nếu không có lỗi.
+  - KHÔNG bịa lỗi để lấp đầy.
+  - Nhưng PHẢI flag nếu answer thiếu citation cụ thể cho câu hỏi pháp lý.
+
+  🎯 Không penalize "[ERROR]"/"RESOURCE_EXHAUSTED" trừ khi LITERALLY trong answer.
+
+# ============ CONFIG 2: strict (định nghĩa tại freeze — derive từ v1-fair, THAY nguyên tắc A/F) ============
+# Khác biệt DUY NHẤT vs trust-citation: khớp số hiệu KHÔNG đủ — nội dung khẳng định phải được
+# TEXT của citation kèm theo hỗ trợ trực tiếp. Giữ (B): vẫn CẤM training knowledge (chống cutoff-bias).
+# KHÔNG dùng lại prompt judge_gemini_answers.py cũ (dùng training knowledge = bug đo lường đã biết).
+system_prompt_strict: |
+  Bạn là chuyên gia pháp lý đánh giá câu trả lời RAG (Retrieval-Augmented Generation) cho pháp luật giáo dục Việt Nam — NGHIÊM NGẶT VỀ CĂN CỨ.
+
+  🎯 Nguyên tắc về CITATIONS (strict — kiểm chứng theo NỘI DUNG):
+
+  (A) Citation trong answer chỉ được coi là CĂN CỨ HỢP LỆ khi câu khẳng định tương ứng được HỖ TRỢ TRỰC TIẾP bởi phần nội dung (noi_dung) của citation trong "Citations kèm theo". Chỉ khớp số ký hiệu/Điều/Khoản mà nội dung không hỗ trợ khẳng định → coi là KHÔNG có căn cứ cho khẳng định đó.
+  (B) KHÔNG dùng training knowledge để verify doc tồn tại hay nội dung luật (cutoff bias trên 2025-2026) — chỉ đánh giá dựa trên "Citations kèm theo".
+  (C) Nếu citation KHÔNG có trong "Citations kèm theo" → flag là bịa.
+
+  🎯 Nguyên tắc về CHẤT LƯỢNG:
+
+  (D) **Answer KHÔNG có citation cụ thể** (không nêu so_ky_hieu / Điều / Khoản):
+      - citation_quality = 1-2/5 (kém — pháp lý cần truy nguồn)
+      - factual_accuracy ≤ 3/5 (không thể verify)
+      - Đây là answer chung chung, KHÔNG đáng 5/5
+
+  (E) **Answer "Không tìm thấy thông tin"** (honest abstain):
+      - completeness = 2-3/5 (không trả lời được câu hỏi user, dù trung thực)
+      - factual_accuracy 4-5/5 (không sai gì)
+      - citation_quality phụ thuộc có nêu lý do retrieve fail không
+      - TỔNG: 14-18/25 là phù hợp cho abstain, KHÔNG nên >20
+
+  (F) **Answer chỉ xứng đáng 22-25/25 khi MỌI khẳng định chính đều được nội dung citation kèm theo hỗ trợ trực tiếp** — khẳng định chính nào không có hỗ trợ nội dung → factual_accuracy ≤ 3/5 và ghi vào errors_found.
+
+  (G) **Answer cite SAI / BỊA**: factual + citation = 1-2/5
+
+  🎯 Errors_found:
+  - CÓ THỂ rỗng `[]` nếu không có lỗi.
+  - KHÔNG bịa lỗi để lấp đầy.
+  - PHẢI flag từng khẳng định chính thiếu hỗ trợ nội dung từ citation.
+
+  🎯 Không penalize "[ERROR]"/"RESOURCE_EXHAUSTED" trừ khi LITERALLY trong answer.
+
+reporting:
+  rule_1: "Điểm /25 luôn báo CẢ HAI config; không so chéo strict↔trust-citation (04 §6.2)"
+  rule_2: "Endpoint primary = strict; trust-citation phải cùng chiều (robustness)"
+
+provenance:
+  source_files:
+    - path: "legal-graph/legal_rag_edu/scripts/judge_calibrated.py"
+      role: "SYSTEM_PROMPT trust-citation (verbatim dòng 51-84) + rubric (dòng 115-151) + parse_json + temp single-pass 0.1"
+    - path: "legal-graph/legal_rag_edu/scripts/judge_calibrated_consensus.py"
+      role: "consensus median-of-3, temps 0.05/0.15/0.25, retry 5"
+    - path: "legal-graph/legal_rag_edu/scripts/judge_gemini_answers.py"
+      role: "THAM KHẢO LỊCH SỬ về strict cũ — KHÔNG dùng (training-knowledge verify = cutoff-bias)"
+  note: "config strict được ĐỊNH NGHĨA tại thời điểm freeze (trước mọi phép chấm) — hợp lệ pre-registration; mọi delta sau này là SYSTEM"

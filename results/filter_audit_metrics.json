@@ -1,0 +1,24 @@
+{
+ "_what": "Independent GPT-4o audit behind the three-step correctness staircase reported in the paper.",
+ "_judge": "gpt-4o, temperature 0, an independent family: neither the Qwen filter nor the Gemini rubric judge",
+ "_sampling": "80 trajectories per group, seed 20260705; every judgement carries an echoed identifier (id match 100%)",
+ "_raw": {
+  "cvrs_tier": "results/filter_audit_raw_cvrs.jsonl",
+  "f35_tier": "results/filter_audit_raw_f35.jsonl"
+ },
+ "rejected": {
+  "n": 80,
+  "correct": 0.438,
+  "grounded": 0.438
+ },
+ "cvrs_accepted": {
+  "n": 80,
+  "correct": 0.45,
+  "grounded": 0.438
+ },
+ "f35_accepted": {
+  "n": 80,
+  "correct": 0.775,
+  "grounded": 0.762
+ }
+}
