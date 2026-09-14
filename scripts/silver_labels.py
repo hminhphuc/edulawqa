@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(os.environ.get("LEXROUTE_ROOT", Path(__file__).resolve().parent.parent))
 # Repo root. Override with the LEXROUTE_ROOT environment variable if you relocate the data.
 sys.path.insert(0, str(ROOT / "scripts"))
-from e04_worker import Worker  # noqa: E402
+from teacher_worker import Worker  # noqa: E402
 
 SYS = """Bạn gán nhãn ROUTE cho câu hỏi pháp luật giáo dục theo quy trình 2 CỔNG (dừng ở nhãn đầu):
 G1: Trả lời ĐÚNG-ĐỦ có BẮT BUỘC đi qua ≥1 quan hệ liên-văn-bản tường minh (sửa đổi/bổ sung,
@@ -44,7 +44,7 @@ def main():
     ap.add_argument("--pool", default="data/train_pool/pool_v1.jsonl")
     a = ap.parse_args()
     rows = [json.loads(l) for l in open(a.pool, encoding="utf-8")]
-    w = Worker("Qwen/Qwen3-32B", str(ROOT / "runs/QGEN/silver"), max_tokens=300, temperature=0.0,
+    w = Worker("Qwen/Qwen3-32B", str(ROOT / "runs/silver_labels"), max_tokens=300, temperature=0.0,
                cost_cap_usd=8.0, extra_body={"chat_template_kwargs": {"enable_thinking": False}})
 
     def build(it):
@@ -76,7 +76,7 @@ def main():
                         break
             i = s + 1
 
-    out_file = str(ROOT / "runs/QGEN/silver/classify.jsonl")
+    out_file = str(ROOT / "runs/silver_labels/classify.jsonl")
     w.map_items(rows, build, po, out_file, max_workers=10)
 
     cls = {json.loads(l)["custom_id"]: (json.loads(l).get("parsed") or {})

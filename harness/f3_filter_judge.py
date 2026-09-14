@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(os.environ.get("LEXROUTE_ROOT", Path(__file__).resolve().parent.parent))
 # Repo root. Override with the LEXROUTE_ROOT environment variable if you relocate the data.
 sys.path.insert(0, str(ROOT / "scripts"))
-from e04_worker import Worker  # noqa: E402
+from teacher_worker import Worker  # noqa: E402
 
 ABSTAIN_PAT = re.compile(r"không\s+tìm\s+thấy\s+thông\s+tin|không\s+có\s+(đủ\s+)?thông\s+tin|"
                          r"không\s+thể\s+trả\s+lời|chưa\s+đủ\s+(căn\s+cứ|thông\s+tin)")

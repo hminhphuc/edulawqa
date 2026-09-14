@@ -15,7 +15,7 @@ The judge-free metric `support@0.4` is lexical overlap, and it shares its thresh
 | Unit of judgement | one citation (not one answer) |
 | Inputs per call | the cited article's full text, the question, the system's answer |
 | Output | strict JSON with an echoed `custom_id` |
-| Scale | 576 student citations (E37) + 635 anchor citations (E37b) |
+| Scale | 576 student citations + 635 anchor citations, scored in two runs |
 | Identifier match | 100%, 0 malformed records |
 | Retries | up to 3 per request; failures written to `bad_records.jsonl`, never silently dropped |
 

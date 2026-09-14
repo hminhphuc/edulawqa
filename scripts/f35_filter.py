@@ -25,7 +25,7 @@ ROOT = Path(os.environ.get("LEXROUTE_ROOT", Path(__file__).resolve().parent.pare
 # Repo root. Override with the LEXROUTE_ROOT environment variable if you relocate the data.
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "eval/harness"))
-from e04_worker import Worker  # noqa: E402
+from teacher_worker import Worker  # noqa: E402
 
 SKY = re.compile(r"\d{1,4}/\d{4}/[A-ZĐ][A-ZĐa-z0-9\-]*")
 

@@ -249,7 +249,7 @@ class FrozenJudge:
         mode='single'    → 1 run at 0.1 (exploratory arms)
         """
         ids = [str(it.get("id", "")) for it in items]
-        assert len(ids) == len(set(ids)) and all(ids), "custom_id phải duy nhất và không rỗng (guardrail 1)"
+        assert len(ids) == len(set(ids)) and all(ids), "custom_id must be unique and non-empty: results are re-aligned by identifier"
         temps = self.consensus_temps if mode == "consensus" else [self.single_temp]
 
         def work(item):

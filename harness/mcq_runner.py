@@ -67,7 +67,7 @@ def build_prompt(item: dict) -> str:
 def run_mcq(items: list[dict], answer_fn, arm_name: str = "?") -> dict:
     """items: [{custom_id, question, options{A..D}, correct_answer}] → results + guard."""
     ids = [it["custom_id"] for it in items]
-    assert len(set(ids)) == len(ids), "custom_id trùng (guardrail 1)"
+    assert len(set(ids)) == len(ids), "duplicate custom_id: results could not be re-aligned by identifier"
     rows, fails = [], 0
     for it in items:
         raw = answer_fn(build_prompt(it))

@@ -87,7 +87,7 @@ The harness expects a retrieval backend; see the paper's method section for the 
 ```bash
 python3 harness/judge.py       --help   # 25-point rubric, strict and trust-citation configurations
 python3 scripts/citation_accuracy.py --help   # judge-free citation existence and support
-python3 scripts/e37_nli_citation.py  --help   # entailment cross-check (needs an API key in the environment)
+python3 scripts/nli_citation.py       --help   # entailment cross-check (needs an API key in the environment)
 python3 harness/stats_tests.py --help   # paired Wilcoxon, exact McNemar, TOST, bootstrap
 ```
 

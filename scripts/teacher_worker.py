@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""e04_worker.py — synchronous multi-provider worker for open-weights teacher inference.
+"""teacher_worker.py — synchronous multi-provider worker for open-weights teacher inference.
 
 Used to generate teacher trajectories, questions, and silver route labels. Design notes:
   - OpenAI-compatible client: DeepInfra primary, Together fallback (separate cost multiplier)
@@ -108,7 +108,7 @@ class Worker:
             done = {json.loads(l)["custom_id"] for l in outp.open() if l.strip()}
             print(f"[worker] resume: {len(done)} đã có")
         todo = [it for it in items if it["custom_id"] not in done]
-        assert len({it["custom_id"] for it in todo}) == len(todo), "custom_id trùng (guardrail 1)"
+        assert len({it["custom_id"] for it in todo}) == len(todo), "duplicate custom_id: results could not be re-aligned by identifier"
         lock_buf = []
 
         def work(it):
@@ -137,21 +137,21 @@ class Worker:
                     self._log(event="progress", total=len(todo), done_now=i,
                               fail_rate=round(self.n_fail / max(self.n_done + self.n_fail, 1), 3))
         self._log(event="finished", total=len(todo))
-        print(f"[worker] xong {len(todo)} | fail {self.n_fail} | cost ${self.cost_usd:.2f}")
+        print(f"[worker] done {len(todo)} | fail {self.n_fail} | cost ${self.cost_usd:.2f}")
 
 
 if __name__ == "__main__":
     # smoke test: 2 questions through Qwen3-32B (cheap) — checks the client and the cost log
     import sys
     sys.path.insert(0, str(Path(__file__).parent))
-    w = Worker("Qwen/Qwen3-32B", "runs/_worker_smoke", max_tokens=200, temperature=0)
+    w = Worker("Qwen/Qwen3-32B", "runs/worker_smoke", max_tokens=200, temperature=0)
     items = [{"custom_id": f"smoke-{i}", "q": q} for i, q in
              enumerate(["Điều 1 Luật Giáo dục 2019 nói về gì? Trả lời 1 câu.",
                         "Viên chức là gì? Trả lời 1 câu."])]
     w.map_items(items,
                 build_messages=lambda it: [{"role": "user", "content": it["q"]}],
                 parse_output=lambda t, it: {"answer": t.strip()[:200]},
-                out_file="runs/_worker_smoke/out.jsonl", max_workers=2)
-    for l in open("runs/_worker_smoke/out.jsonl"):
+                out_file="runs/worker_smoke/out.jsonl", max_workers=2)
+    for l in open("runs/worker_smoke/out.jsonl"):
         r = json.loads(l)
         print(f"  {r['custom_id']}: ok={r['ok']} | {str(r.get('parsed',{}).get('answer'))[:80]}")

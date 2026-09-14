@@ -43,5 +43,5 @@ jobs:
           done
           python3 harness/judge.py --help > /dev/null
           python3 scripts/citation_accuracy.py --help > /dev/null
-          python3 scripts/e37_nli_citation.py --help > /dev/null
+          python3 scripts/nli_citation.py --help > /dev/null
           python3 harness/stats_tests.py --help > /dev/null

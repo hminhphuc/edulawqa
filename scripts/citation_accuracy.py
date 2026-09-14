@@ -6,7 +6,7 @@ For each arm (student and teacher outputs): check the answer's citations against
   - cite_support: content-word overlap between the answer and the text of the cited article ≥ 0.4
     (the same threshold as CVRS tier F2 — consistent and pre-existing)
 Per-arm metrics: citation precision (exists), support rate, % of answers with ≥1 valid citation, citations/answer.
-100% deterministic: no judge, no human. → runs/E25_citation-accuracy/metrics.json
+100% deterministic: no judge, no human. → runs/citation_accuracy/metrics.json
 
 Usage: python3 scripts/citation_accuracy.py
 """
@@ -24,7 +24,7 @@ import requests
 
 ROOT = Path(os.environ.get("LEXROUTE_ROOT", Path(__file__).resolve().parent.parent))
 # Repo root. Override with the LEXROUTE_ROOT environment variable if you relocate the data.
-OUT = ROOT / "runs/E25_citation-accuracy"
+OUT = ROOT / "runs/citation_accuracy"
 QDRANT = "http://localhost:6333"
 
 ARMS = {
@@ -36,7 +36,7 @@ ARMS = {
     "4B-base": "runs/student_infer/eval200_4B-base.jsonl",
     "4B-no-route": "runs/student_infer/eval200_4B-no-route-f35.jsonl",
     "4B-unfiltered": "runs/student_infer/eval200_4B-unfiltered-f35.jsonl",
-    "teacher-32B": "runs/E13_teacher-anchor/eval200_teacher.jsonl",
+    "teacher-32B": "runs/teacher_anchor/eval200_teacher.jsonl",
 }
 
 STOP = set("của và các là được theo trong cho với tại về này đó có không phải người việc quy định điều khoản luật nghị".split())

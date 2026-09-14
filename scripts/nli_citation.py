@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""e37_nli_citation.py — NLI cross-check for citation support (addresses the "extractiveness" concern).
+"""nli_citation.py — NLI cross-check for citation support (addresses the "extractiveness" concern).
 
 Motivation: "support@0.4 is lexical overlap, so it may reward verbatim copying and measure
 extractiveness rather than grounding — ALCE uses NLI for exactly this reason." Cross-check:
@@ -13,7 +13,7 @@ Batch-safety protocol: a unique custom_id per request (arm|qid|cit_idx); the LLM
 in its JSON; results are re-aligned by id; the id-match rate is logged; broken records go to
 bad_records.jsonl (no silent skipping).
 
-Usage: python3 scripts/e37_nli_citation.py [--dry-run]   (needs OPENAI_API_KEY in the environment)
+Usage: python3 scripts/nli_citation.py [--dry-run]   (needs OPENAI_API_KEY in the environment)
 """
 import argparse
 import json
@@ -31,7 +31,7 @@ ROOT = Path(os.environ.get("LEXROUTE_ROOT", Path(__file__).resolve().parent.pare
 sys.path.insert(0, str(ROOT / "scripts"))
 from citation_accuracy import build_corpus_index, norm_doc  # noqa: E402
 
-OUT = ROOT / "runs/E37_nli-citation"
+OUT = ROOT / "runs/nli_citation"
 ARMS = {
     "8B-traj": "runs/student_infer/eval200_8B-traj-f35.jsonl",
     "8B-answer": "runs/student_infer/eval200_8B-answer-f35.jsonl",
@@ -155,7 +155,7 @@ def main():
         print("⚠️ match_rate < 90% — kiểm tra bad_records trước khi dùng!")
 
     # per-arm metrics + comparison with the lexical metric
-    lex = json.load(open(ROOT / "runs/E25_citation-accuracy/metrics.json")) if (ROOT / "runs/E25_citation-accuracy/metrics.json").exists() else {}
+    lex = json.load(open(ROOT / "runs/citation_accuracy/metrics.json")) if (ROOT / "runs/citation_accuracy/metrics.json").exists() else {}
     metrics = {}
     print(f"\n{'arm':10}{'n_cit':>6}{'NLI-full':>10}{'NLI-full+part':>14}{'lexical@0.4':>12}")
     for arm in ARMS:
@@ -174,7 +174,7 @@ def main():
     json.dump({"meta": meta, "metrics": metrics}, open(OUT / "nli_metrics.json", "w"),
               ensure_ascii=False, indent=1)
     (OUT / "config.yaml").write_text(
-        f"run_id: E37_nli-citation\nmodel: {MODEL}\nn_requests: {len(reqs)}\n"
+        f"run: nli_citation\nmodel: {MODEL}\nn_requests: {len(reqs)}\n"
         f"id_match_rate: {match_rate:.4f}\ncost_est_usd: {est_cost:.3f}\ncost_actual_usd: {cost:.3f}\n"
         f"purpose: NLI cross-check citation-support (extractiveness rebuttal, C9)\n")
     print(f"\ncost actual=${cost:.3f} (est ${est_cost:.2f}) → {OUT}/nli_metrics.json")
