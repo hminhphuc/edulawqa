@@ -20,6 +20,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install dependencies
+        run: python3 -m pip install --quiet -r requirements.txt
+
       - name: Checksums match
         run: cd data && sha256sum -c SHA256SUMS
 
@@ -28,7 +31,6 @@ jobs:
 
       - name: Harness self-tests
         run: |
-          python3 -m pip install --quiet scipy numpy
           python3 harness/stats_tests.py
           python3 harness/cvrs.py
           python3 harness/mcq_runner.py
